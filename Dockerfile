@@ -1,7 +1,10 @@
-# 1️⃣ Build stage: Compile the Spring Boot project
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# 1️⃣ Build stage: Compile the Spring Boot project with Java 24
+FROM eclipse-temurin:24-jdk-alpine AS build
 
 WORKDIR /app
+
+# Install Maven manually since alpine JDK images don't include it
+RUN apk add --no-cache maven
 
 # Copy pom.xml and download dependencies first for better caching
 COPY pom.xml .
@@ -14,8 +17,8 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 
-# 2️⃣ Runtime stage: Run the built application in a slim JDK image
-FROM eclipse-temurin:17-jdk-jammy
+# 2️⃣ Runtime stage: Run the built application in Java 24
+FROM eclipse-temurin:24-jdk-alpine
 
 WORKDIR /app
 
