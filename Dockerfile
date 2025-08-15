@@ -1,26 +1,25 @@
-# 1️⃣ Build Stage - use Maven to compile the Spring Boot app
+# 1️⃣ Build stage: Compile the Spring Boot project
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy pom.xml and download dependencies first (better caching)
+# Copy pom.xml and download dependencies first for better caching
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-# Copy the rest of the source code
+# Copy the source code
 COPY src ./src
 
-# Build the application
+# Build the Spring Boot application without running tests
 RUN mvn clean package -DskipTests
 
-# 2️⃣ Runtime Stage - run the built app in a smaller image
+
+# 2️⃣ Runtime stage: Run the built application in a slim JDK image
 FROM eclipse-temurin:17-jdk-jammy
 
-# Set working directory
 WORKDIR /app
 
-# Copy only the built jar from the build stage
+# Copy the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
 # Environment variables for Render PostgreSQL
@@ -30,8 +29,8 @@ ENV SPRING_DATASOURCE_PASSWORD=Xofj3tqTccxuMogErpupYPyZBTpFnngh
 ENV SPRING_JPA_HIBERNATE_DDL_AUTO=update
 ENV SPRING_JPA_SHOW_SQL=true
 
-# Expose port
+# Expose backend port
 EXPOSE 8080
 
-# Run the application
+# Command to run the app
 ENTRYPOINT ["java", "-jar", "app.jar"]
